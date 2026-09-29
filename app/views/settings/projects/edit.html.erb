@@ -1,0 +1,28 @@
+<% content_for :panel do %>
+  <%= form_with model: @project, url: settings_project_path(@project), local: true, class: "flex flex-col gap-4" do |f| %>
+    <label class="flex flex-col gap-1.5 text-[13px] font-medium text-things-ink">
+      <%= t("settings.name") %>
+      <%= f.text_field :name, required: true, class: "h-10 rounded-lg border border-things-border bg-white px-3 text-[14px] text-things-ink outline-none focus:border-things-blue" %>
+    </label>
+    <label class="flex flex-col gap-1.5 text-[13px] font-medium text-things-ink">
+      <%= t("settings.color") %>
+      <%= f.select :color, options_for_select(["#4a7cf5", "#f0923f", "#7c5cd6", "#2db8a6", "#e8453c", "#c9b458", "#3fbf6e", "#e86fa4"], @project.color), {}, class: "h-10 rounded-lg border border-things-border bg-white px-3 text-[14px] text-things-ink outline-none focus:border-things-blue" %>
+    </label>
+    <label class="flex flex-col gap-1.5 text-[13px] font-medium text-things-ink">
+      <%= t("settings.area") %>
+      <%= f.select :area_id, options_for_select(Area.order(:position).map { |a| [a.name, a.id] }, @project.area_id), { include_blank: t("settings.no_area") }, class: "h-10 rounded-lg border border-things-border bg-white px-3 text-[14px] text-things-ink outline-none focus:border-things-blue" %>
+    </label>
+    <label class="flex flex-col gap-1.5 text-[13px] font-medium text-things-ink">
+      <%= t("settings.notes") %>
+      <%= f.text_area :notes, rows: 3, class: "rounded-lg border border-things-border bg-white px-3 py-2 text-[14px] text-things-ink outline-none focus:border-things-blue" %>
+    </label>
+    <div class="flex items-center justify-between gap-3">
+      <%= f.submit t("settings.save"), class: "h-10 rounded-lg bg-things-blue px-5 text-[14px] font-medium text-white transition-colors hover:bg-things-blue-dark" %>
+    </div>
+  <% end %>
+  <div class="mt-6 border-t border-things-hairline pt-4">
+    <%= button_to t("settings.delete_list"), settings_project_destroy_path(@project), method: :delete, form: { data: { controller: "confirm", "confirm-message": t("settings.delete_list_confirm") } }, class: "h-9 rounded-lg border border-things-badge/30 px-4 text-[13px] font-medium text-things-badge transition-colors hover:bg-things-badge/5" %>
+    <p class="mt-2 text-[12px] text-things-gray"><%= t("settings.delete_list_hint") %></p>
+  </div>
+<% end %>
+<%= render "settings/shared/shell", title: t("settings.list_settings") %>

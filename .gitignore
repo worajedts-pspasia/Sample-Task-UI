@@ -1,0 +1,34 @@
+# Dependencies
+/node_modules
+
+# Rails
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+/storage/*
+!/storage/.keep
+.bundle/config
+
+# Vite build output
+/public/vite-dev
+/public/vite-test
+
+# Env & secrets
+.env
+.env.*
+
+# OS
+.DS_Store
+
+# TypeScript
+*.tsbuildinfo
+
+# Storybook
+storybook-static
+debug-storybook.log
+
+# Playwright
+test-results
+playwright-report
+medical-clinic-software-ui/

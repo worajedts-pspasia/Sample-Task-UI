@@ -1,0 +1,35 @@
+<% content_for :panel do %>
+  <dl class="flex flex-col gap-3 text-[13.5px]">
+    <div class="flex justify-between gap-4">
+      <dt class="text-things-gray-4"><%= t("settings.email") %></dt>
+      <dd class="text-things-ink"><%= @user.email %></dd>
+    </div>
+    <div class="flex justify-between gap-4">
+      <dt class="text-things-gray-4"><%= t("settings.api_token") %></dt>
+      <dd class="flex items-center gap-2">
+        <code class="rounded bg-things-chip-soft px-1.5 py-0.5 text-[11.5px] text-things-ink"><%= @user.api_token %></code>
+      </dd>
+    </div>
+  </dl>
+  <div class="mt-6 border-t border-things-hairline pt-4">
+    <p class="mb-2.5 text-[13px] font-medium text-things-ink"><%= t("settings.language") %></p>
+    <div class="flex flex-wrap gap-2">
+      <% [["en", "English"], ["th", "ไทย"], ["ja", "日本語"]].each do |code, label| %>
+        <%= button_to label,
+              settings_preferences_path,
+              method: :patch,
+              params: { user: { locale: code } },
+              class: [
+                "h-9 rounded-lg px-4 text-[13px] transition-colors",
+                (@user.locale == code) ? "bg-things-blue font-medium text-white" : "border border-things-border text-things-gray-4 hover:bg-things-hover hover:text-things-ink",
+              ].join(" ") %>
+      <% end %>
+    </div>
+    <p class="mt-2 text-[12px] text-things-gray"><%= t("settings.language_hint") %></p>
+  </div>
+  <div class="mt-6 rounded-lg border border-things-hairline bg-things-chip-soft p-3 text-[12px] leading-relaxed text-things-gray-2">
+    Use the token for the API: send <code class="text-things-ink">Authorization: Token &lt;token&gt;</code>.
+    Full reference at <%= link_to "/api/docs", "/api/docs", class: "text-things-blue hover:underline" %>.
+  </div>
+<% end %>
+<%= render "settings/shared/shell", title: t("settings.account") %>

@@ -1,0 +1,11 @@
+<% content_for :panel do %>
+  <%= form_with model: @user, url: settings_preferences_path, local: true, class: "flex flex-col gap-4" do |f| %>
+    <label class="flex flex-col gap-1.5 text-[13px] font-medium text-things-ink">
+      <%= t("settings.language") %>
+      <%= f.select :locale, options_for_select([["English", "en"], ["ไทย", "th"], ["日本語", "ja"]], @user.locale), {}, class: "h-10 rounded-lg border border-things-border bg-white px-3 text-[14px] text-things-ink outline-none focus:border-things-blue" %>
+    </label>
+    <%= f.submit t("settings.save"), class: "h-10 rounded-lg bg-things-blue text-[14px] font-medium text-white transition-colors hover:bg-things-blue-dark" %>
+  <% end %>
+  <p class="mt-3 text-[12px] text-things-gray"><%= t("settings.language_hint") %></p>
+<% end %>
+<%= render "settings/shared/shell", title: t("settings.preferences") %>

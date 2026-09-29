@@ -1,0 +1,559 @@
+openapi: 3.0.3
+info:
+  title: Things 3 API
+  version: 1.0.0
+  description: |
+    JSON API for the Things 3 web app. Every canvas feature in the UI uses these endpoints.
+
+    **Authentication** — send your token as a header:
+
+        Authorization: Token <api_token>
+
+    The token is shown in Settings → Account. Session-cookie requests (the SPA in a
+    logged-in browser) are also accepted and CSRF-protected.
+
+    Docs are kept in sync by hand — update this file whenever an endpoint changes
+    (see AGENTS.md). Behavior is verified by the request specs in spec/requests.
+servers:
+  - url: /
+tags:
+  - name: Bootstrap
+  - name: Tasks
+  - name: Checklists
+  - name: Trash
+  - name: Lists
+  - name: Search
+components:
+  securitySchemes:
+    tokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: "Format: Token <api_token>"
+  schemas:
+    TagRef:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+    ChecklistItem:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        completed: { type: boolean }
+    Task:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        notes: { type: string, nullable: true }
+        when_date: { type: string, format: date, nullable: true, example: "2026-09-29" }
+        reminder_at: { type: string, nullable: true, example: "09:00" }
+        evening: { type: boolean }
+        deadline_date: { type: string, format: date, nullable: true }
+        status: { type: string, enum: [open, completed, canceled] }
+        someday: { type: boolean }
+        trashed: { type: boolean }
+        completed_at: { type: string, format: date-time, nullable: true }
+        position: { type: integer }
+        project_id: { type: integer, nullable: true }
+        area_id: { type: integer, nullable: true }
+        heading_id: { type: integer, nullable: true }
+        tags:
+          type: array
+          items: { $ref: "#/components/schemas/TagRef" }
+        checklist_items:
+          type: array
+          items: { $ref: "#/components/schemas/ChecklistItem" }
+    Project:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        color: { type: string, example: "#4a7cf5" }
+        notes: { type: string, nullable: true }
+        archived: { type: boolean }
+        area_id: { type: integer, nullable: true }
+        open_count: { type: integer }
+        total_count: { type: integer }
+    Area:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        open_count: { type: integer }
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+        details: { type: array, items: { type: string } }
+  parameters:
+    bucket:
+      name: bucket
+      in: query
+      required: true
+      schema:
+        type: string
+        enum: [today, inbox, upcoming, anytime, someday, logbook, trash]
+security:
+  - tokenAuth: []
+paths:
+  /api/v1/bootstrap:
+    get:
+      tags: [Bootstrap]
+      summary: Everything the app shell needs (user, lists, tags, counts)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: object
+                    properties:
+                      email: { type: string }
+                      locale: { type: string, enum: [en, th, ja] }
+                      api_token: { type: string }
+                  areas: { type: array, items: { $ref: "#/components/schemas/Area" } }
+                  projects: { type: array, items: { $ref: "#/components/schemas/Project" } }
+                  tags: { type: array, items: { $ref: "#/components/schemas/TagRef" } }
+                  counts:
+                    type: object
+                    properties:
+                      today: { type: integer }
+                      inbox: { type: integer }
+                      anytime: { type: integer }
+                      someday: { type: integer }
+                      logbook: { type: integer }
+                      trash: { type: integer }
+
+  /api/v1/tasks:
+    get:
+      tags: [Tasks]
+      summary: List tasks by bucket
+      parameters:
+        - $ref: "#/components/parameters/bucket"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Task" }
+        "400": { description: Unknown bucket }
+    post:
+      tags: [Tasks]
+      summary: Create a task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title]
+              properties:
+                title: { type: string }
+                notes: { type: string }
+                when_date: { type: string, format: date, nullable: true }
+                reminder_at: { type: string, example: "09:00", nullable: true }
+                evening: { type: boolean }
+                deadline_date: { type: string, format: date, nullable: true }
+                someday: { type: boolean }
+                project_id: { type: integer, nullable: true }
+                area_id: { type: integer, nullable: true }
+                heading_id: { type: integer, nullable: true }
+                tag_ids: { type: array, items: { type: integer } }
+      responses:
+        "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Task" } } } }
+        "422": { description: Invalid, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+
+  /api/v1/tasks/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer }
+    get:
+      tags: [Tasks]
+      summary: Show a task
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Task" } } } }
+        "404": { description: Not found }
+    patch:
+      tags: [Tasks]
+      summary: Update task attributes (title, notes, evening, tags via tag_ids, …)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                notes: { type: string, nullable: true }
+                evening: { type: boolean }
+                tag_ids: { type: array, items: { type: integer } }
+      responses:
+        "200": { description: Updated, content: { application/json: { schema: { $ref: "#/components/schemas/Task" } } } }
+        "422": { description: Invalid }
+    delete:
+      tags: [Tasks]
+      summary: Move a task to Trash (soft delete)
+      responses:
+        "200": { description: Trashed, content: { application/json: { schema: { $ref: "#/components/schemas/Task" } } } }
+
+  /api/v1/tasks/{id}/complete:
+    post:
+      tags: [Tasks]
+      summary: Mark completed
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { "200": { description: Completed } }
+
+  /api/v1/tasks/{id}/uncomplete:
+    post:
+      tags: [Tasks]
+      summary: Reopen a completed task
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { "200": { description: Open again } }
+
+  /api/v1/tasks/{id}/cancel:
+    post:
+      tags: [Tasks]
+      summary: Cancel a task
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { "200": { description: Canceled } }
+
+  /api/v1/tasks/{id}/schedule:
+    post:
+      tags: [Tasks]
+      summary: Schedule — set when_date, or evening, or someday, or clear
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                when_date: { type: string, format: date }
+                evening: { type: boolean }
+                someday: { type: boolean }
+                clear: { type: boolean }
+      responses: { "200": { description: Scheduled } }
+
+  /api/v1/tasks/{id}/deadline:
+    post:
+      tags: [Tasks]
+      summary: Set or clear a deadline
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deadline_date: { type: string, format: date, nullable: true }
+      responses: { "200": { description: Deadline set } }
+
+  /api/v1/tasks/{id}/remind:
+    post:
+      tags: [Tasks]
+      summary: Set or clear a reminder time
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reminder_at: { type: string, example: "09:00", nullable: true }
+      responses: { "200": { description: Reminder set } }
+
+  /api/v1/tasks/{id}/move:
+    post:
+      tags: [Tasks]
+      summary: Move to a project / area / inbox
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                project_id: { type: integer, nullable: true }
+                area_id: { type: integer, nullable: true }
+                inbox: { type: boolean }
+                heading_id: { type: integer, nullable: true }
+      responses: { "200": { description: Moved } }
+
+  /api/v1/tasks/{id}/reorder:
+    post:
+      tags: [Tasks]
+      summary: Set manual order position
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [position]
+              properties:
+                position: { type: integer }
+      responses: { "200": { description: Reordered } }
+
+  /api/v1/tasks/{id}/restore:
+    post:
+      tags: [Trash]
+      summary: Restore a task from Trash
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { "200": { description: Restored } }
+
+  /api/v1/tasks/complete_all:
+    post:
+      tags: [Tasks]
+      summary: Complete every task in a bucket (Today's "clear the day")
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bucket: { type: string, enum: [today] }
+      responses: { "204": { description: Done } }
+
+  /api/v1/trash/empty:
+    delete:
+      tags: [Trash]
+      summary: Empty the trash permanently
+      responses: { "204": { description: Empty } }
+
+  /api/v1/tasks/{task_id}/checklist_items:
+    parameters:
+      - name: task_id
+        in: path
+        required: true
+        schema: { type: integer }
+    post:
+      tags: [Checklists]
+      summary: Add a checklist item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title]
+              properties:
+                title: { type: string }
+      responses:
+        "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/ChecklistItem" } } } }
+
+  /api/v1/tasks/{task_id}/checklist_items/{id}:
+    parameters:
+      - name: task_id
+        in: path
+        required: true
+        schema: { type: integer }
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer }
+    patch:
+      tags: [Checklists]
+      summary: Check/rename a checklist item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                completed: { type: boolean }
+      responses: { "200": { description: Updated } }
+    delete:
+      tags: [Checklists]
+      summary: Remove a checklist item
+      responses: { "204": { description: Removed } }
+
+  /api/v1/projects:
+    get:
+      tags: [Lists]
+      summary: List projects
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Project" } } } } } }
+    post:
+      tags: [Lists]
+      summary: Create a project (New List)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                color: { type: string, example: "#2db8a6" }
+                notes: { type: string }
+                area_id: { type: integer, nullable: true }
+      responses: { "201": { description: Created } }
+
+  /api/v1/projects/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+    get:
+      tags: [Lists]
+      summary: Show a project with headings and tasks
+      responses: { "200": { description: OK } }
+    patch:
+      tags: [Lists]
+      summary: Update a project
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                color: { type: string }
+                notes: { type: string, nullable: true }
+                area_id: { type: integer, nullable: true }
+                archived: { type: boolean }
+      responses: { "200": { description: Updated } }
+    delete:
+      tags: [Lists]
+      summary: Delete a project and its tasks
+      responses: { "204": { description: Deleted } }
+
+  /api/v1/projects/{project_id}/headings:
+    parameters: [{ name: project_id, in: path, required: true, schema: { type: integer } }]
+    post:
+      tags: [Lists]
+      summary: Add a section heading to a project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+      responses: { "201": { description: Created } }
+
+  /api/v1/areas:
+    get:
+      tags: [Lists]
+      summary: List areas
+      responses: { "200": { description: OK } }
+    post:
+      tags: [Lists]
+      summary: Create an area (New Area)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+      responses: { "201": { description: Created } }
+
+  /api/v1/areas/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+    patch:
+      tags: [Lists]
+      summary: Rename an area
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+      responses: { "200": { description: Updated } }
+    delete:
+      tags: [Lists]
+      summary: Delete an area (tasks and lists keep, without an area)
+      responses: { "204": { description: Deleted } }
+
+  /api/v1/tags:
+    get:
+      tags: [Lists]
+      summary: List tags
+      responses: { "200": { description: OK } }
+    post:
+      tags: [Lists]
+      summary: Create a tag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                parent_id: { type: integer, nullable: true }
+      responses: { "201": { description: Created } }
+
+  /api/v1/tags/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+    patch:
+      tags: [Lists]
+      summary: Rename a tag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+      responses: { "200": { description: Updated } }
+    delete:
+      tags: [Lists]
+      summary: Delete a tag (removed from all tasks)
+      responses: { "204": { description: Deleted } }
+
+  /api/v1/search:
+    get:
+      tags: [Search]
+      summary: Quick Find — search tasks, projects, areas, tags
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: integer }
+                        title: { type: string }
+                        project_id: { type: integer, nullable: true }
+                        area_id: { type: integer, nullable: true }
+                        when_date: { type: string, format: date, nullable: true }
+                  projects: { type: array, items: { $ref: "#/components/schemas/Project" } }
+                  areas: { type: array, items: { $ref: "#/components/schemas/Area" } }
+                  tags: { type: array, items: { $ref: "#/components/schemas/TagRef" } }

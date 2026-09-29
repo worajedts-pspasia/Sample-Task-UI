@@ -1,0 +1,13 @@
+/*
+ * Tailwind root for the Rails app. Owns the tailwind chain (the @tailwindcss
+ * vite plugin only transforms stylesheets inside this project's root), inlines
+ * the import-free theme/token stylesheet from the sibling shin-med-ui package,
+ * and declares the content sources for this build: the package source tree
+ * and this app's ERB templates.
+ */
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "../../../shin-med-ui/src/theme.css";
+@source "../../../shin-med-ui/src";
+@source "../views/**/*.erb";

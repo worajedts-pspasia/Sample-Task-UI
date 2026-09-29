@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Sample Tasks UI — Settings</title>
+    <%= csrf_meta_tags %>
+    <%= vite_client_tag %>
+    <%= vite_javascript_tag "entrypoints/hotwire.js" %>
+  </head>
+  <body class="h-full bg-things-window font-sans text-things-ink">
+    <%= yield %>
+  </body>
+</html>

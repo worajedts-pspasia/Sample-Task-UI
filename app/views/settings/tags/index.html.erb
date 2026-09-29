@@ -1,0 +1,18 @@
+<% content_for :panel do %>
+  <%= form_with model: @tag, url: settings_tags_path, local: true, class: "mb-5 flex gap-2" do |f| %>
+    <%= f.text_field :name, placeholder: t("settings.new_tag_name"), required: true, class: "h-10 flex-1 rounded-lg border border-things-border bg-white px-3 text-[14px] text-things-ink outline-none placeholder:text-things-gray focus:border-things-blue" %>
+    <%= f.submit t("settings.add"), class: "h-10 rounded-lg bg-things-blue px-4 text-[13.5px] font-medium text-white transition-colors hover:bg-things-blue-dark" %>
+  <% end %>
+  <ul class="flex flex-col divide-y divide-things-hairline">
+    <% @tags.each do |tag| %>
+      <li class="flex items-center gap-2 py-2">
+        <%= form_with model: tag, url: settings_tag_path(tag), local: true, class: "flex flex-1 gap-2" do |f| %>
+          <%= f.text_field :name, class: "h-8 flex-1 rounded-lg border border-transparent bg-transparent px-2 text-[13.5px] text-things-ink outline-none hover:border-things-border focus:border-things-blue focus:bg-white" %>
+          <%= f.submit t("settings.save_small"), class: "h-8 rounded-md px-2.5 text-[12px] text-things-blue hover:bg-things-hover" %>
+        <% end %>
+        <%= button_to "Delete", settings_tag_destroy_path(tag), method: :delete, form: { data: { controller: "confirm", "confirm-message": t("settings.tag_delete_confirm", name: tag.name) } }, class: "h-8 rounded-md px-2.5 text-[12px] text-things-gray-4 hover:bg-things-badge/5 hover:text-things-badge" %>
+      </li>
+    <% end %>
+  </ul>
+<% end %>
+<%= render "settings/shared/shell", title: t("settings.tags") %>

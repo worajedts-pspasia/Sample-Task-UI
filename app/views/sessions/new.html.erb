@@ -1,0 +1,19 @@
+<div class="flex min-h-dvh items-center justify-center bg-things-window px-4">
+  <div class="w-full max-w-xs">
+    <div class="mb-6 flex flex-col items-center gap-2">
+      <svg viewBox="0 0 24 24" class="size-12" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" fill="#3b82ec"/><path d="M7 12.4l3.4 3.6L17 8.6" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <h1 class="text-[20px] font-bold tracking-[-0.02em] text-things-title">Sample Tasks UI</h1>
+    </div>
+    <% if flash[:alert] %>
+      <p class="mb-3 rounded-lg bg-things-badge/10 px-3 py-2 text-center text-[12.5px] text-things-badge"><%= flash[:alert] %></p>
+    <% end %>
+    <div class="rounded-2xl border border-things-hairline bg-white p-5 shadow-[0_18px_50px_rgba(0,0,0,0.12)]">
+      <%= form_with url: login_path, local: true, class: "flex flex-col gap-3" do |f| %>
+        <%= f.email_field :email, placeholder: t("sessions.email"), required: true, class: "h-10 rounded-lg border border-things-border bg-white px-3 text-[14px] text-things-ink outline-none placeholder:text-things-gray focus:border-things-blue" %>
+        <%= f.password_field :password, placeholder: t("sessions.password"), required: true, class: "h-10 rounded-lg border border-things-border bg-white px-3 text-[14px] text-things-ink outline-none placeholder:text-things-gray focus:border-things-blue" %>
+        <%= f.submit t("sessions.sign_in"), class: "h-10 rounded-lg bg-things-blue text-[14px] font-medium text-white transition-colors hover:bg-things-blue-dark" %>
+      <% end %>
+    </div>
+    <p class="mt-4 text-center text-[12px] text-things-gray"><%= t("sessions.demo_hint") %></p>
+  </div>
+</div>

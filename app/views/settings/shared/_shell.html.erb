@@ -1,0 +1,19 @@
+<div class="flex min-h-dvh justify-center bg-things-window px-4 py-10">
+  <div class="w-full max-w-md">
+    <div class="mb-4 flex items-center justify-between">
+      <%= link_to t("sessions.back_to_things"), root_path, class: "text-[13px] font-medium text-things-blue hover:underline" %>
+      <% if user_signed_in? %>
+        <%= button_to t("sessions.sign_out"), logout_path, method: :delete, class: "text-[13px] text-things-gray-4 hover:text-things-ink" %>
+      <% end %>
+    </div>
+    <div class="rounded-2xl border border-things-hairline bg-white p-6 shadow-[0_18px_50px_rgba(0,0,0,0.12)]">
+      <h1 class="mb-5 text-[22px] font-bold tracking-[-0.02em] text-things-title"><%= title %></h1>
+      <%= yield :panel %>
+    </div>
+    <div class="mt-4 text-center text-[12px] text-things-gray">
+      <%= link_to "Account", settings_root_path, class: "mx-1.5 hover:text-things-ink" %> ·
+      <%= link_to "Preferences", settings_preferences_path, class: "mx-1.5 hover:text-things-ink" %> ·
+      <%= link_to "Tags", tags_path, class: "mx-1.5 hover:text-things-ink" %>
+    </div>
+  </div>
+</div>

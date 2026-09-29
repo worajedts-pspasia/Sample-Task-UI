@@ -1,0 +1,14 @@
+<% content_for :panel do %>
+  <%= form_with model: @area, url: settings_area_path(@area), local: true, class: "flex flex-col gap-4" do |f| %>
+    <label class="flex flex-col gap-1.5 text-[13px] font-medium text-things-ink">
+      <%= t("settings.name") %>
+      <%= f.text_field :name, required: true, class: "h-10 rounded-lg border border-things-border bg-white px-3 text-[14px] text-things-ink outline-none focus:border-things-blue" %>
+    </label>
+    <%= f.submit t("settings.save"), class: "h-10 rounded-lg bg-things-blue px-5 text-[14px] font-medium text-white transition-colors hover:bg-things-blue-dark" %>
+  <% end %>
+  <div class="mt-6 border-t border-things-hairline pt-4">
+    <%= button_to t("settings.delete_area"), settings_area_destroy_path(@area), method: :delete, form: { data: { controller: "confirm", "confirm-message": t("settings.delete_area_confirm") } }, class: "h-9 rounded-lg border border-things-badge/30 px-4 text-[13px] font-medium text-things-badge transition-colors hover:bg-things-badge/5" %>
+    <p class="mt-2 text-[12px] text-things-gray"><%= t("settings.delete_area_hint") %></p>
+  </div>
+<% end %>
+<%= render "settings/shared/shell", title: t("settings.area_settings") %>
