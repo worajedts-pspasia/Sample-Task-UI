@@ -4,9 +4,10 @@ A working task-manager app: real buttons, real persistence, localized
 (en/th/ja). React owns the task canvas; Hotwire (ERB + Turbo + Stimulus) owns
 the forms and settings; one Rails API serves both.
 
-**The UI component library lives in the sibling repo [`../shin-med-ui`](../shin-med-ui)**
+**The UI component library lives in the sibling repo [shin-med-ui](https://github.com/worajedts-pspasia/shin-med-ui)**
 — this app consumes it as a package. **That folder must exist next to this one
-or nothing builds.**
+or nothing builds — clone it into the sibling directory:**
+`git clone git@github.com:worajedts-pspasia/shin-med-ui.git`
 
 ## Stack
 
